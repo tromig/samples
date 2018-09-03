@@ -1,0 +1,121 @@
+﻿@using SmartPak.Core.TypeExtensions
+@using SmartPak.DataAccess.Products
+@using SmartPak.DataAccess.Products.Data
+@using SmartPak.Engine.Pricing
+@using SPE.Web.Common.Controls
+@using SPE.Web.Views.ProductComparison
+@using SPE.Web.ViewModels.Browse
+@using ProductHelper = SmartPak.UI.Web.Common.Models.Product.ProductHelper
+@model SPE.Web.ViewModels.ProductComparison.ProductComparisonViewModel
+@{
+    var productClassFactory = new ProductClassFactory();
+}
+
+<div id='bodywrapper'>
+    <div id='tableWrapper'>
+
+        <div class='rowStrip headStrip'>            
+            <div id='staticLeftColumn'>
+                <div class='columnHeadCell'>Product</div>
+                @foreach (var productClass in Model.ProductClasses)
+                {
+                    <div class='vertCell'>
+                        <a href="/mobile/p/@productClass.Id">@Html.Raw(productClass.Name)</a>
+                        <img class="cellStars" src="@productClass.RatingImageUrl()" style="border-width: 0" alt="">
+                    </div>    
+                }
+            </div>
+        </div>
+
+        <div id='sliderWrap'>
+            <div id='slider' class='swipe'>
+                <div class='swipe-wrap'>
+                    <div class='colStrip'>
+                        <div class='columnHeadCell'>SmartPaks Cost/Day</div>
+
+                        @foreach (var productClass in Model.ProductClasses)
+                        {
+                            var costPerDay = productClass.GetCachedDefaultSkuCostPerDay();
+                            var costString = costPerDay != NullValueTypeExtender.NullDecimal ? costPerDay.ToString("C") : "--";
+                            <div class='vertCell'>
+                                <div class='vertCellInner'>
+                                  @costString
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class='colStrip'>
+                        <div class='columnHeadCell'>Buckets Cost/Day</div>
+
+                        @foreach (var productClass in Model.ProductClasses)
+                        {
+                            var costPerDayViewModel = Model.CostPerDayViewModels.First(o=>o.ProductClassId == productClass.Id);
+                            var bucketsCostPerDay = costPerDayViewModel.BucketCostPerDay;
+                            var bucketCostString = bucketsCostPerDay != NullValueTypeExtender.NullDecimal ?  bucketsCostPerDay.ToString("C") :  "--";
+                            <div class='vertCell'>
+                                <div class='vertCellInner'>
+                                    @bucketCostString
+                                    
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class='colStrip'>
+                        <div class='columnHeadCell'>Form</div>
+
+                        @foreach (var productClass in Model.ProductClasses)
+                        {
+                            var formString = productClass.ProductForm > 0 ? productClass.ProductForm.ToString() : "-";
+                            <div class='vertCell'>
+                                <div class='vertCellInner'>@formString</div>
+
+                            </div>
+                        }
+                    </div>
+
+                    @foreach (var ingredient in Model.Ingredients)
+                    {
+                        <div class='colStrip'>
+                            <div class='columnHeadCell'>@Html.Raw(ingredient.IngredientName)</div>
+                            @foreach (var productClass in Model.ProductClasses)
+                            {
+                                var productClassIngredient = productClassFactory.GetProductClassIngredients(productClass.Id).Find(pci => pci.IngredientId == ingredient.IngredientId);
+                                <div class='vertCell'>
+                                    <div class='vertCellInner'>
+                                        @Html.Raw(productClassIngredient != null
+                                            ? ( productClassIngredient.IsUnknownIngredientAmount ? "<img src='/images/colicare/check_bullet.png' class='ingredCheck' />"
+                                                : ProductHelper.FormatStandardUnitAmountPerServing(productClassIngredient) )
+                                            : "--")
+                                    </div>
+                                </div>
+                            }
+                        </div>          
+                    }
+
+
+                    <div class='colStrip'>
+                        <div class='columnHeadCell'>NASC Seal</div>
+
+                        @foreach (var productClass in Model.ProductClasses)
+                        {
+                            <div class='vertCell'>
+                                <div class='vertCellInner'>
+                                    @if (productClass.NascSeal)
+                                    {
+                                        <img src='/images/compare/compareCheck.png' />
+                                    }
+                                    else
+                                    {
+                                        <text>--</text>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
